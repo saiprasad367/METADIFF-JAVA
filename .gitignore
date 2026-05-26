@@ -1,0 +1,57 @@
+# ===========================
+# MetaDiff Monorepo .gitignore
+# ===========================
+
+# Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.swp
+*.swo
+
+# Node / Frontend
+node_modules/
+dist/
+.next/
+.nuxt/
+.output/
+.wrangler/
+*.local
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+
+# Git storage (generated at runtime)
+git-storage/
+
+# Build artifacts
+*.tmp
+*.temp
