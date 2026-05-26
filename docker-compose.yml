@@ -1,0 +1,215 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: metadiff-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U metadiff"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: metadiff-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: auth-service/Dockerfile
+    container_name: metadiff-auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  snapshot-service:
+    build:
+      context: ./backend
+      dockerfile: snapshot-service/Dockerfile
+    container_name: metadiff-snapshot-service
+    ports:
+      - "8082:8082"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      GIT_REPO_PATH: /git-storage
+    volumes:
+      - git_storage:/git-storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  diff-service:
+    build:
+      context: ./backend
+      dockerfile: diff-service/Dockerfile
+    container_name: metadiff-diff-service
+    ports:
+      - "8083:8083"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      SNAPSHOT_SERVICE_URL: http://snapshot-service:8082
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  risk-service:
+    build:
+      context: ./backend
+      dockerfile: risk-service/Dockerfile
+    container_name: metadiff-risk-service
+    ports:
+      - "8084:8084"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      DIFF_SERVICE_URL: http://diff-service:8083
+      NOTIFICATION_SERVICE_URL: http://notification-service:8087
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  git-service:
+    build:
+      context: ./backend
+      dockerfile: git-service/Dockerfile
+    container_name: metadiff-git-service
+    ports:
+      - "8085:8085"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      GIT_REPO_PATH: /git-storage
+    volumes:
+      - git_storage:/git-storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  analytics-service:
+    build:
+      context: ./backend
+      dockerfile: analytics-service/Dockerfile
+    container_name: metadiff-analytics-service
+    ports:
+      - "8086:8086"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      GIT_SERVICE_URL: http://git-service:8085
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: ./backend
+      dockerfile: notification-service/Dockerfile
+    container_name: metadiff-notification-service
+    ports:
+      - "8087:8087"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: metadiff
+      POSTGRES_USER: metadiff
+      POSTGRES_PASSWORD: changeme
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api-gateway:
+    build:
+      context: ./backend
+      dockerfile: api-gateway/Dockerfile
+    container_name: metadiff-api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: metadiff_super_secret_key_change_this_in_production_32chars
+      AUTH_SERVICE_URL: http://auth-service:8081
+      SNAPSHOT_SERVICE_URL: http://snapshot-service:8082
+      DIFF_SERVICE_URL: http://diff-service:8083
+      RISK_SERVICE_URL: http://risk-service:8084
+      GIT_SERVICE_URL: http://git-service:8085
+      ANALYTICS_SERVICE_URL: http://analytics-service:8086
+      NOTIFICATION_SERVICE_URL: http://notification-service:8087
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  git_storage:
