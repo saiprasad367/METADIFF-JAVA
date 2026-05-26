@@ -83,9 +83,10 @@ public class DiffEngine {
                 }
             }
             if (bestMatch != null) {
-                entries.add(entry(diffId, ChangeType.RENAMED, rk,
-                        beforeMap.get(rk), afterMap.get(bestMatch), bestScore));
-                entries.getLast().setNewValue(bestMatch + " → " + afterMap.get(bestMatch));
+                DiffEntry renamedEntry = entry(diffId, ChangeType.RENAMED, rk,
+                        beforeMap.get(rk), afterMap.get(bestMatch), bestScore);
+                renamedEntry.setNewValue(bestMatch + " → " + afterMap.get(bestMatch));
+                entries.add(renamedEntry);
                 matchedAdded.add(bestMatch);
                 matchedRemoved.add(rk);
             }
