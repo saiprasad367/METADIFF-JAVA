@@ -8,7 +8,7 @@ MetaDiff is a production-grade DevOps intelligence platform that ingests metadat
 
 ```mermaid
 graph TD
-    Browser[React / TanStack Start UI] -->|HTTP / JSON| Gateway[API Gateway :8080]
+    Browser[React / TanStack Start UI] -->|HTTP / JSON| Gateway[API Gateway :8088]
     
     subgraph Microservices Core
         Gateway -->|Route| AuthServ[Auth Service :8081]
@@ -120,7 +120,7 @@ Open [http://localhost:3000](http://localhost:3000) (or the port output by Vite)
 
 ## REST API Reference
 
-All requests must pass through the **API Gateway** on port `8080`. Non-auth endpoints require a `Authorization: Bearer <JWT_ACCESS_TOKEN>` header.
+All requests must pass through the **API Gateway** on port `8088`. Non-auth endpoints require a `Authorization: Bearer <JWT_ACCESS_TOKEN>` header.
 
 ### 1. Auth Service (`:8081` via Gateway)
 - `POST /auth/register` — Create a new user with `name`, `email`, `role`, `password`.

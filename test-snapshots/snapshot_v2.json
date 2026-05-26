@@ -1,0 +1,27 @@
+{
+  "CustomObject": {
+    "Account": {
+      "fields": ["Name", "Type", "Industry", "Rating"],
+      "validationRules": ["Active_Required"]
+    },
+    "Contact": {
+      "fields": ["FirstName", "LastName", "Email"]
+    }
+  },
+  "ApexClass": {
+    "OrderTrigger": {
+      "size": 3500
+    },
+    "OrderTriggerHelper": {
+      "size": 1500
+    }
+  },
+  "Profile": {
+    "Admin": {
+      "userPermissions": ["ModifyAllData", "ManageUsers", "ViewAllData", "AuthorApex"]
+    },
+    "Sales": {
+      "userPermissions": ["EditOpportunity"]
+    }
+  }
+}

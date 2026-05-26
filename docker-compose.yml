@@ -193,7 +193,7 @@ services:
       dockerfile: api-gateway/Dockerfile
     container_name: metadiff-api-gateway
     ports:
-      - "8080:8080"
+      - "8088:8080"
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
